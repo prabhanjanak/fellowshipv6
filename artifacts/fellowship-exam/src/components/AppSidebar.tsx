@@ -4,6 +4,7 @@ import logoUrl from "../assets/seh_sav_logo_1777703794142.jpg";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { cn } from "../lib/utils";
+import { isMockEnabled, setMockEnabled } from "../lib/api";
 import {
   LayoutDashboard,
   Users,
@@ -28,6 +29,8 @@ import {
   CreditCard,
   Monitor,
   Mail,
+  Database,
+  FlaskConical,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 
@@ -73,10 +76,18 @@ function SidebarContent({ onNavigate, collapsed }: { onNavigate?: () => void; co
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [location] = useLocation();
+  const [mockEnabled, setMockEnabledState] = useState(isMockEnabled());
 
   if (!user) return null;
 
   const filtered = navItems.filter((item) => item.roles.includes(user.role));
+
+  const handleToggleMock = () => {
+    const newVal = !mockEnabled;
+    setMockEnabled(newVal);
+    setMockEnabledState(newVal);
+    window.location.reload(); // Hard reload to reset all query states and API interceptions
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -91,6 +102,17 @@ function SidebarContent({ onNavigate, collapsed }: { onNavigate?: () => void; co
             </div>
           )}
         </div>
+        {mockEnabled && !collapsed && (
+          <div className="mt-2 px-2 py-1 bg-amber-500/20 border border-amber-500/50 rounded flex items-center gap-2">
+            <FlaskConical className="h-3 w-3 text-amber-500" />
+            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">Mock Mode Enabled</span>
+          </div>
+        )}
+        {mockEnabled && collapsed && (
+          <div className="mt-2 flex justify-center">
+            <FlaskConical className="h-4 w-4 text-amber-500 animate-pulse" />
+          </div>
+        )}
       </div>
 
       {/* Nav */}
@@ -126,6 +148,22 @@ function SidebarContent({ onNavigate, collapsed }: { onNavigate?: () => void; co
             <p className="text-[10px] text-sidebar-primary truncate">{roleLabel[user.role] ?? user.role}</p>
           </div>
         )}
+
+        {/* Mock Toggle */}
+        <Button
+          variant="ghost"
+          size="sm"
+          title={collapsed ? "Toggle Mock Data" : undefined}
+          className={cn(
+            "w-full justify-start gap-2",
+            mockEnabled ? "text-amber-500 hover:bg-amber-500/10" : "text-sidebar-foreground/70 hover:bg-sidebar-accent",
+            collapsed && "px-2 justify-center"
+          )}
+          onClick={handleToggleMock}
+        >
+          <Database className="h-4 w-4" />
+          {!collapsed && (mockEnabled ? "Disable Mock Data" : "Enable Mock Data")}
+        </Button>
 
         <Link href="/profile" onClick={onNavigate}>
           <div 

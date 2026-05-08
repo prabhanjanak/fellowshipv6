@@ -93,4 +93,24 @@ router.post("/debug/seed", async (req, res) => {
   }
 });
 
+router.post("/debug/reset", async (req, res) => {
+  try {
+    logger.info("Database reset requested");
+
+    // Cleanup everything
+    await db.delete(batchCandidatesTable);
+    await db.delete(batchesTable);
+    await db.delete(applicationSubmissionsTable);
+    await db.delete(candidatesTable);
+    await db.delete(applicationFormsTable);
+    await db.delete(seatMatrixEntriesTable);
+    await db.delete(programsTable);
+    
+    res.json({ message: "Database reset completed successfully" });
+  } catch (error) {
+    logger.error({ error }, "Reset failed");
+    res.status(500).json({ error: (error as Error).message });
+  }
+});
+
 export default router;

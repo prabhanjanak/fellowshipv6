@@ -107,13 +107,13 @@ export default function DashboardPage() {
     { title: "Pending Review", value: stats?.pendingReview ?? "—", icon: Clock, color: "bg-amber-600", href: canSeeCandidates ? "/candidates" : undefined },
   ];
 
-  const seedMutation = useMutation({
-    mutationFn: () => api.post("/debug/seed", {}),
+  const resetMutation = useMutation({
+    mutationFn: () => api.post("/debug/reset", {}),
     onSuccess: () => {
-      toast({ title: "Database seeded successfully" });
+      toast({ title: "Database reset successful", description: "All test data has been removed." });
       qc.invalidateQueries();
     },
-    onError: (e: Error) => toast({ title: "Seed failed", description: e.message, variant: "destructive" }),
+    onError: (e: Error) => toast({ title: "Reset failed", description: e.message, variant: "destructive" }),
   });
 
   return (
@@ -128,16 +128,16 @@ export default function DashboardPage() {
         {role === "super_admin" && (
           <Button 
             variant="outline" 
-            className="gap-2 border-dashed border-orange-300 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+            className="gap-2 border-dashed border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
             onClick={() => {
-              if (confirm("This will WIPE all existing programs, candidates, and forms and replace them with dummy test data. Continue?")) {
-                seedMutation.mutate();
+              if (confirm("CRITICAL: This will PERMANENTLY WIPE all programs, candidates, forms, and submissions from the LIVE database. Use this ONLY to start fresh. Continue?")) {
+                resetMutation.mutate();
               }
             }}
-            disabled={seedMutation.isPending}
+            disabled={resetMutation.isPending}
           >
-            {seedMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
-            Seed Test Data
+            {resetMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
+            Reset Database (Live)
           </Button>
         )}
       </div>

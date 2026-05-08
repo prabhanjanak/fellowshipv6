@@ -1,3 +1,5 @@
+import { MOCK_DATA } from "./mockData";
+
 const API_BASE = "/api";
 
 export type Role =
@@ -43,7 +45,26 @@ export function clearToken(): void {
   localStorage.removeItem("fellowship_token");
 }
 
+// Mock Helpers
+export function isMockEnabled(): boolean {
+  return localStorage.getItem("fellowship_mock_enabled") === "true";
+}
+
+export function setMockEnabled(enabled: boolean): void {
+  localStorage.setItem("fellowship_mock_enabled", enabled ? "true" : "false");
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  // INTERCEPT FOR MOCK DATA
+  if (isMockEnabled() && (options.method === "GET" || !options.method)) {
+    // Exact match or prefix match for some routes
+    const mockKey = Object.keys(MOCK_DATA).find(k => path.startsWith(k));
+    if (mockKey) {
+      console.log(`[MOCK API] Intercepting GET ${path}`);
+      return new Promise((resolve) => setTimeout(() => resolve(MOCK_DATA[mockKey as keyof typeof MOCK_DATA] as T), 300));
+    }
+  }
+
   const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
